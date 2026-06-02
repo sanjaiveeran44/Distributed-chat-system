@@ -16,7 +16,14 @@ public class ChatController {
     public ChatController(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
     }
+    @MessageMapping("/online")
+    public void online(
+        @Payload ChatMessage message){
 
+        System.out.println(
+                message.getSender() + " is online"
+    );
+}
     @MessageMapping("/chat/{roomId}")
     public void sendMessage(
             @DestinationVariable String roomId,
