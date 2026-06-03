@@ -1,12 +1,13 @@
 package com.example.distributed_chat_system.controller;
 
-import com.example.distributed_chat_system.model.ChatMessage;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+
+import com.example.distributed_chat_system.model.ChatMessage;
 
 @Controller
 public class ChatController {
@@ -47,7 +48,7 @@ public class ChatController {
                 .put("username", message.getSender());
         headerAccessor.getSessionAttributes()
                 .put("roomId", roomId);
-        message.setType(com.example.distributed_chat_system.model.MessageType.JOIN);
+        message.setMessageType(com.example.distributed_chat_system.model.MessageType.JOIN);
         messagingTemplate.convertAndSend(
                 "/topic/" + roomId,
                 message
