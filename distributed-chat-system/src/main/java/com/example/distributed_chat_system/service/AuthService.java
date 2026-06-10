@@ -7,7 +7,6 @@ import com.example.distributed_chat_system.dto.LoginRequest;
 import com.example.distributed_chat_system.dto.RegisterRequest;
 import com.example.distributed_chat_system.entity.User;
 import com.example.distributed_chat_system.repository.UserRepository;
-import com.example.distributed_chat_system.service.JwtService;
 
 @Service
 public class AuthService {
@@ -51,7 +50,6 @@ public class AuthService {
                         request.getPassword()
                 )
         );
-
         userRepository.save(user);
     }
 
