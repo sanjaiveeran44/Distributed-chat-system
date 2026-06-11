@@ -36,6 +36,9 @@ public class JwtAuthenticationFilter
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+        System.out.println("====================JWT FILTER CALLED======================");
+        System.out.println("=====================Authorization: " + request.getHeader("Authorization") + "=====================");
+
         String authHeader =
                 request.getHeader("Authorization");
 
