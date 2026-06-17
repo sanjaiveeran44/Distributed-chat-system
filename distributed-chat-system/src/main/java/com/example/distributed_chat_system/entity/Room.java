@@ -24,6 +24,9 @@ public class Room {
 
     @Column(name = "is_private")
     private Boolean isPrivate;
+    public Room() {
+        
+    }
 
     public Room(String name, String description, Long createdBy,Boolean isPrivate) {
         this.name = name;

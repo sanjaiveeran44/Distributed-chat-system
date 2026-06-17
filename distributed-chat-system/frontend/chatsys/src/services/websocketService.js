@@ -3,37 +3,124 @@ import { Client } from "@stomp/stompjs";
 
 let stompClient = null;
 
-export const connectWebSocket = (username) => {
+export const connectWebSocket = (
+    roomId,
+    username,
+    onMessageReceived
+    ) => {
 
-    const socket = new SockJS(
-        "http://localhost:8080/ws"
-    );
+        const socket = new SockJS("http://localhost:8080/chat");
 
-    stompClient = new Client({
+        stompClient = new Client({
 
-        webSocketFactory: () => socket,
+            webSocketFactory: () => socket,
 
-        reconnectDelay: 5000,
+            reconnectDelay: 5000,
 
-        onConnect: () => {
+            connectHeaders: {
 
-            console.log("Connected");
+                Authorization:
+                    `Bearer ${localStorage.getItem("token")}`
 
-            stompClient.publish({
-                destination: "/app/online",
-                body: JSON.stringify({
-                    sender: username
-                })
-            });
-        }
+            },
+
+            debug: (str) => {
+                console.log(str);
+            },
+
+            onConnect: () => {
+
+                console.log("========== CONNECTED ==========");
+
+                stompClient.subscribe(
+                    `/topic/${roomId}`,
+                    (message) => {
+
+                        console.log("MESSAGE FROM SERVER");
+                        console.log(message.body);
+
+                        onMessageReceived(
+                            JSON.parse(message.body)
+                        );
+                    }
+                );
+
+                stompClient.publish({
+
+                    destination: `/app/join/${roomId}`,
+
+                    body: JSON.stringify({
+
+                        sender: username,
+
+                        message: "",
+
+                        messageType: "JOIN"
+
+                    })
+
+                });
+
+            },
+
+            onStompError: (frame) => {
+
+                console.log("STOMP ERROR");
+
+                console.log(frame);
+
+            }
+
+        });
+
+        stompClient.activate();
+
+    };
+
+export const sendMessage = (
+
+    roomId,
+
+    username,
+
+    text
+
+) => {
+
+    if (!stompClient) {
+
+        console.log("CLIENT IS NULL");
+
+        return;
+
+    }
+
+    console.log("SENDING MESSAGE");
+
+    stompClient.publish({
+
+        destination: `/app/chat/${roomId}`,
+
+        body: JSON.stringify({
+
+            sender: username,
+
+            message: text,
+
+            messageType: "CHAT"
+
+        })
+
     });
 
-    stompClient.activate();
 };
 
 export const disconnectWebSocket = () => {
 
     if (stompClient) {
+
         stompClient.deactivate();
+
     }
+
 };

@@ -1,17 +1,21 @@
 package com.example.distributed_chat_system.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.distributed_chat_system.dto.CreateRoomRequest;
 import com.example.distributed_chat_system.dto.RoomResponse;
 import com.example.distributed_chat_system.entity.Room;
 import com.example.distributed_chat_system.service.RoomService;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
-import org.springframework.stereotype.Component;
 
 @RestController
 @RequestMapping("/api/rooms")
@@ -43,28 +47,21 @@ public class RoomController {
                         request,
                         authentication
                 )
-
         );
-
     }
-
     @GetMapping
     public ResponseEntity<List<Room>> getRooms() {
 
         return ResponseEntity.ok(
-
                 roomService.getAllRooms()
-
         );
 
     }
 
     @PostMapping("/{roomId}/join")
     public ResponseEntity<String> joinRoom(
-
             @PathVariable Long roomId,
             Authentication authentication
-
     ) {
 
         roomService.joinRoom(
@@ -75,7 +72,5 @@ public class RoomController {
         return ResponseEntity.ok(
                 "Joined Successfully"
         );
-
     }
-
 }

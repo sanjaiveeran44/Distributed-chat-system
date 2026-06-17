@@ -4,25 +4,41 @@ import {
 
     getRooms,
 
-    createRoom,
-
     joinRoom
 
 } from "../services/RoomService";
 
+import {
+
+    connectWebSocket,
+
+    sendMessage,
+
+    disconnectWebSocket
+
+} from "../services/websocketService";
+
 function Chat() {
+
+    const username = localStorage.getItem("email");
 
     const [rooms, setRooms] = useState([]);
 
     const [selectedRoom, setSelectedRoom] = useState(null);
 
-    const [name, setName] = useState("");
+    const [messages, setMessages] = useState([]);
 
-    const [description, setDescription] = useState("");
+    const [text, setText] = useState("");
 
     useEffect(() => {
 
         loadRooms();
+
+        return () => {
+
+            disconnectWebSocket();
+
+        };
 
     }, []);
 
@@ -34,34 +50,48 @@ function Chat() {
 
     };
 
-    const createNewRoom = async () => {
-
-        if (!name.trim()) return;
-
-        await createRoom({
-
-            name,
-
-            description,
-
-            isPrivate: false
-
-        });
-
-        setName("");
-
-        setDescription("");
-
-        loadRooms();
-
-    };
-
     const enterRoom = async (room) => {
 
         await joinRoom(room.id);
 
+        disconnectWebSocket();
+
+        setMessages([]);
+
+        connectWebSocket(
+
+            room.id,
+
+            username,
+
+            (message) => {
+
+                setMessages((previous) => [
+
+                    ...previous,
+
+                    message
+
+                ]);
+
+            }
+
+        );
+
         setSelectedRoom(room);
 
+    };
+
+    const send = () => {
+
+        if (!text.trim()) return;
+
+        sendMessage(
+            selectedRoom.id,
+            username,
+            text
+        );
+        setText("");
     };
 
     return (
@@ -70,9 +100,9 @@ function Chat() {
 
             style={{
 
-                height: "100vh",
-
                 display: "flex",
+
+                height: "100vh",
 
                 background: "#0f172a",
 
@@ -86,7 +116,7 @@ function Chat() {
 
                 style={{
 
-                    width: "320px",
+                    width: "280px",
 
                     borderRight: "1px solid #334155",
 
@@ -101,78 +131,6 @@ function Chat() {
                     Rooms
 
                 </h2>
-
-                <input
-
-                    value={name}
-
-                    placeholder="Room name"
-
-                    onChange={(e) =>
-
-                        setName(e.target.value)
-
-                    }
-
-                    style={{
-
-                        width: "100%",
-
-                        marginBottom: "10px",
-
-                        padding: "10px"
-
-                    }}
-
-                />
-
-                <input
-
-                    value={description}
-
-                    placeholder="Description"
-
-                    onChange={(e) =>
-
-                        setDescription(
-
-                            e.target.value
-
-                        )
-
-                    }
-
-                    style={{
-
-                        width: "100%",
-
-                        marginBottom: "10px",
-
-                        padding: "10px"
-
-                    }}
-
-                />
-
-                <button
-
-                    onClick={createNewRoom}
-
-                    style={{
-
-                        width: "100%",
-
-                        padding: "10px",
-
-                        marginBottom: "20px"
-
-                    }}
-
-                >
-
-                    Create Room
-
-                </button>
 
                 {
 
@@ -192,7 +150,7 @@ function Chat() {
 
                                 style={{
 
-                                    padding: "12px",
+                                    padding: "15px",
 
                                     marginBottom: "10px",
 
@@ -206,25 +164,13 @@ function Chat() {
 
                                             : "#1e293b",
 
-                                    borderRadius: "8px"
+                                    borderRadius: "10px"
 
                                 }}
 
                             >
 
-                                <strong>
-
-                                    {room.name}
-
-                                </strong>
-
-                                <br />
-
-                                <small>
-
-                                    {room.description}
-
-                                </small>
+                                {room.name}
 
                             </div>
 
@@ -244,47 +190,153 @@ function Chat() {
 
                     display: "flex",
 
-                    justifyContent: "center",
-
-                    alignItems: "center",
-
-                    fontSize: "28px"
+                    flexDirection: "column"
 
                 }}
 
             >
 
+                <div
+
+                    style={{
+
+                        padding: "20px",
+
+                        borderBottom: "1px solid #334155"
+
+                    }}
+
+                >
+
+                    {
+
+                        selectedRoom
+
+                            ?
+
+                            selectedRoom.name
+
+                            :
+
+                            "Select Room"
+
+                    }
+
+                </div>
+
+                <div
+
+                    style={{
+
+                        flex: 1,
+
+                        overflowY: "auto",
+
+                        padding: "20px"
+
+                    }}
+
+                >
+
+                    {
+
+                        messages.map(
+
+                            (msg, index) => (
+
+                                <div
+
+                                    key={index}
+
+                                    style={{
+
+                                        marginBottom: "15px"
+
+                                    }}
+
+                                >
+
+                                    <strong>
+
+                                        {
+
+                                            msg.sender
+
+                                        }
+
+                                    </strong>
+
+                                    <br/>
+
+                                    {
+
+                                        msg.message
+
+                                    }
+
+                                </div>
+
+                            )
+
+                        )
+
+                    }
+
+                </div>
+
                 {
 
-                    selectedRoom
+                    selectedRoom &&
 
-                        ?
+                    <div
 
-                        (
+                        style={{
 
-                            <div>
+                            display: "flex",
 
-                                Joined
+                            padding: "20px",
 
-                                <br />
+                            gap: "10px"
 
-                                <h2>
+                        }}
 
-                                    {selectedRoom.name}
+                    >
 
-                                </h2>
+                        <input
 
-                            </div>
+                            value={text}
 
-                        )
+                            onChange={(e) =>
 
-                        :
+                                setText(
 
-                        (
+                                    e.target.value
 
-                            "Select a Room"
+                                )
 
-                        )
+                            }
+
+                            style={{
+
+                                flex: 1,
+
+                                padding: "15px"
+
+                            }}
+
+                        />
+
+                        <button
+
+                            onClick={send}
+
+                        >
+
+                            Send
+
+                        </button>
+
+                    </div>
 
                 }
 
