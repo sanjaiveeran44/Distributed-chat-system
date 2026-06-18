@@ -13,5 +13,9 @@ public interface MessageRepository
     List<Message> findByRoomIdOrderByTimestampAsc(
             Long roomId
     );
+    
+    default Message saveMessage(Message message) {
+        return save(message);
+    }
 
 }
