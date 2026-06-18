@@ -6,6 +6,7 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -29,17 +30,27 @@ public class WebSocketAuthChannelInterceptor
     }
 
     @Override
-    public Message<?> preSend(
-            Message<?> message,
-            MessageChannel channel
-    ) {
-        StompHeaderAccessor accessor =
-                StompHeaderAccessor.wrap(message);
+    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+
+        // Use MessageHeaderAccessor.getAccessor to get a mutable accessor.
+        // StompHeaderAccessor.wrap() in Spring Framework 7 returns an immutable view;
+        // getAccessor() returns the existing mutable one if present, or creates a new one.
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(
+                message, StompHeaderAccessor.class
+        );
+
+        System.out.println("===== CHANNEL INTERCEPTOR preSend, command="
+                + (accessor != null ? accessor.getCommand() : "null") + " =====");
+
+        if (accessor == null) {
+            return message;
+        }
 
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
 
-            String authHeader =
-                    accessor.getFirstNativeHeader("Authorization");
+            String authHeader = accessor.getFirstNativeHeader("Authorization");
+
+            System.out.println("===== CONNECT Authorization header: " + authHeader + " =====");
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
@@ -47,44 +58,37 @@ public class WebSocketAuthChannelInterceptor
 
                 try {
                     String email = jwtService.extractEmail(token);
-
-                    UserDetails userDetails =
-                            userDetailsService.loadUserByUsername(email);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
                     if (jwtService.validateToken(token, userDetails.getUsername())) {
 
-                        UsernamePasswordAuthenticationToken authentication =
+                        UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(
                                         userDetails,
                                         null,
                                         userDetails.getAuthorities()
                                 );
 
-                        accessor.setUser(authentication);
+                        // setLeaveMutable BEFORE setUser so the header map stays writable
                         accessor.setLeaveMutable(true);
+                        accessor.setUser(auth);
 
-                        System.out.println("===== CHANNEL INTERCEPTOR: user authenticated: "
-                                + authentication.getName() + " =====");
+                        System.out.println("===== CHANNEL INTERCEPTOR: authenticated "
+                                + auth.getName() + " =====");
+
+                        return MessageBuilder.createMessage(
+                                message.getPayload(),
+                                accessor.getMessageHeaders()
+                        );
                     }
 
                 } catch (Exception e) {
-                    System.out.println("===== CHANNEL INTERCEPTOR: JWT validation failed: "
+                    System.out.println("===== CHANNEL INTERCEPTOR: JWT error: "
                             + e.getMessage() + " =====");
                 }
             }
-
-            // Rebuild the message so the mutated headers (including simpUser) are preserved.
-            // In Spring Framework 7 the original Message<?> is immutable; wrapping and
-            // mutating the accessor only changes the accessor's internal copy unless we
-            // explicitly create a new Message from the updated headers.
-            return MessageBuilder.createMessage(
-                    message.getPayload(),
-                    accessor.getMessageHeaders()
-            );
         }
 
-        // For non-CONNECT frames, pass through unchanged — the broker already copies
-        // simpUser from the session registry into each message on the inbound channel.
         return message;
     }
 }

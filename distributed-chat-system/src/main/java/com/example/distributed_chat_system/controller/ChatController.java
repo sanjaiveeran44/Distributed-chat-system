@@ -5,10 +5,9 @@ import java.security.Principal;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-
 
 import com.example.distributed_chat_system.model.ChatMessage;
 import com.example.distributed_chat_system.repository.MessageRepository;
@@ -38,12 +37,16 @@ public class ChatController {
                 "Authenticated User : " + accessor.getUser()
         );
 
+        if (accessor.getUser() == null) {
+            System.out.println("ERROR: Principal is null in sendMessage — rejecting");
+            return;
+        }
+
         message.setSender(accessor.getUser().getName());
         messagingTemplate.convertAndSend(
                 "/topic/" + roomId,
                 message
         );
-
     }
 
     @MessageMapping("/join/{roomId}")
@@ -56,6 +59,11 @@ public class ChatController {
             Principal principal
 
     ) {
+
+        if (principal == null) {
+            System.out.println("ERROR: Principal is null in joinRoom — rejecting");
+            return;
+        }
 
         message.setSender(principal.getName());
 
