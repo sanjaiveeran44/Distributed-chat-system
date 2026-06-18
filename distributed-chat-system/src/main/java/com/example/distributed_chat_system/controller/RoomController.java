@@ -72,5 +72,12 @@ public class RoomController {
         return ResponseEntity.ok(
                 "Joined Successfully"
         );
+        @GetMapping("/api/rooms/{roomId}/messages")
+
+    }
+    public List<Message> getRoomMessages(
+        @PathVariable Long roomId) {
+        return messageRepository
+                .findByRoomIdOrderByTimestampAsc(roomId);
     }
 }

@@ -24,25 +24,46 @@ public class ChatController {
     }
 
     @MessageMapping("/chat/{roomId}")
+    @MessageMapping("/chat/{roomId}")
     public void sendMessage(
-
             @DestinationVariable String roomId,
-
             @Payload ChatMessage message,
-
             SimpMessageHeaderAccessor accessor
     ) {
 
-        System.out.println(
-                "Authenticated User : " + accessor.getUser()
-        );
-
-        if (accessor.getUser() == null) {
-            System.out.println("ERROR: Principal is null in sendMessage — rejecting");
+        if(accessor.getUser() == null){
             return;
         }
 
-        message.setSender(accessor.getUser().getName());
+        String email =
+                accessor.getUser().getName();
+
+        User sender =
+                userRepository.findByEmail(email)
+                        .orElseThrow();
+
+        Message dbMessage = new Message();
+
+        dbMessage.setRoomId(
+                Long.parseLong(roomId)
+        );
+
+        dbMessage.setSenderId(
+                sender.getId()
+        );
+
+        dbMessage.setMessage(
+                message.getMessage()
+        );
+
+        dbMessage.setTimestamp(
+                LocalDateTime.now()
+        );
+
+        messageRepository.save(dbMessage);
+
+        message.setSender(email);
+
         messagingTemplate.convertAndSend(
                 "/topic/" + roomId,
                 message
