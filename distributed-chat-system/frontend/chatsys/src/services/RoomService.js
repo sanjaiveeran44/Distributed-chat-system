@@ -65,3 +65,23 @@ export const joinRoom = async (roomId) => {
     );
 
 };
+
+export const getRoomMessages = async (roomId) => {
+
+    return axios.get(
+
+        `${API}/${roomId}/messages`,
+
+        {
+
+            headers: {
+
+                Authorization: `Bearer ${getToken()}`
+
+            }
+
+        }
+
+    );
+
+};
