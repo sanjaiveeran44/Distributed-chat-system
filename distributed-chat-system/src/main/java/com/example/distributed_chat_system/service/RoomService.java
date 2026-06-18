@@ -8,6 +8,8 @@ import com.example.distributed_chat_system.entity.User;
 import com.example.distributed_chat_system.repository.RoomMemberRepository;
 import com.example.distributed_chat_system.repository.RoomRepository;
 import com.example.distributed_chat_system.repository.UserRepository;
+import com.example.distributed_chat_system.repository.MessageRepository;
+import com.example.distributed_chat_system.entity.Message;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -20,15 +22,18 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final RoomMemberRepository roomMemberRepository;
     private final UserRepository userRepository;
+    private final MessageRepository messageRepository;
 
     public RoomService(
             RoomRepository roomRepository,
             RoomMemberRepository roomMemberRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            MessageRepository messageRepository
     ) {
         this.roomRepository = roomRepository;
         this.roomMemberRepository = roomMemberRepository;
         this.userRepository = userRepository;
+        this.messageRepository = messageRepository;
     }
 
     public RoomResponse createRoom(
@@ -104,6 +109,10 @@ public class RoomService {
         member.setJoinedAt(LocalDateTime.now());
 
         roomMemberRepository.save(member);
+    }
+
+    public List<Message> getRoomMessages(Long roomId) {
+        return messageRepository.findByRoomIdOrderByTimestampAsc(roomId);
     }
 
 }
