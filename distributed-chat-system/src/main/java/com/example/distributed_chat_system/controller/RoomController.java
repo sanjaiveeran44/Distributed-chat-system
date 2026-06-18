@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.distributed_chat_system.dto.CreateRoomRequest;
 import com.example.distributed_chat_system.dto.RoomResponse;
 import com.example.distributed_chat_system.entity.Room;
+import com.example.distributed_chat_system.entity.Message;
 import com.example.distributed_chat_system.service.RoomService;
 
 @RestController
@@ -72,12 +73,11 @@ public class RoomController {
         return ResponseEntity.ok(
                 "Joined Successfully"
         );
-        @GetMapping("/api/rooms/{roomId}/messages")
-
     }
+
+    @GetMapping("/{roomId}/messages")
     public List<Message> getRoomMessages(
         @PathVariable Long roomId) {
-        return messageRepository
-                .findByRoomIdOrderByTimestampAsc(roomId);
+        return roomService.getRoomMessages(roomId);
     }
 }
