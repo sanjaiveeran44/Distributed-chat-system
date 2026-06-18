@@ -10,20 +10,25 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import com.example.distributed_chat_system.model.ChatMessage;
-import com.example.distributed_chat_system.repository.MessageRepository;
+import com.example.distributed_chat_system.service.MessageService;
+import com.example.distributed_chat_system.entity.Message;
+import com.example.distributed_chat_system.entity.User;
+import com.example.distributed_chat_system.service.UserService;
+import java.time.LocalDateTime;
 
 @Controller
 public class ChatController {
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final MessageRepository messageRepository;
+    private final MessageService messageService;
+    private final UserService userService;
 
-    public ChatController(SimpMessagingTemplate messagingTemplate, MessageRepository messageRepository) {
+    public ChatController(SimpMessagingTemplate messagingTemplate, MessageService messageService, UserService userService) {
         this.messagingTemplate = messagingTemplate;
-        this.messageRepository = messageRepository;
+        this.messageService = messageService;
+        this.userService = userService;
     }
 
-    @MessageMapping("/chat/{roomId}")
     @MessageMapping("/chat/{roomId}")
     public void sendMessage(
             @DestinationVariable String roomId,
@@ -39,7 +44,7 @@ public class ChatController {
                 accessor.getUser().getName();
 
         User sender =
-                userRepository.findByEmail(email)
+                userService.findByEmail(email)
                         .orElseThrow();
 
         Message dbMessage = new Message();
@@ -60,7 +65,7 @@ public class ChatController {
                 LocalDateTime.now()
         );
 
-        messageRepository.save(dbMessage);
+        messageService.saveMessage(dbMessage);
 
         message.setSender(email);
 
