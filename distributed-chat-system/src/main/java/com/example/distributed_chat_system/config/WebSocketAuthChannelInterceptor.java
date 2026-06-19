@@ -69,7 +69,6 @@ public class WebSocketAuthChannelInterceptor
                                         userDetails.getAuthorities()
                                 );
 
-                        // setLeaveMutable BEFORE setUser so the header map stays writable
                         accessor.setLeaveMutable(true);
                         accessor.setUser(auth);
 
