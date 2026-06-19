@@ -37,7 +37,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**"
                                 ,"/chat/**"
-                                ,"/test-redis"
+                                ,"/test-nginx"
                         ).permitAll()
                         .anyRequest().authenticated()
                 ).addFilterBefore(
