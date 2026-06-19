@@ -13,6 +13,9 @@ public class RedisSubscriber implements MessageListener {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
+
+    @org.springframework.beans.factory.annotation.Value("${server.port:8080}")
+    private String port;
     
     public RedisSubscriber(SimpMessagingTemplate messagingTemplate){
         this.messagingTemplate = messagingTemplate;
@@ -24,9 +27,9 @@ public class RedisSubscriber implements MessageListener {
     public void onMessage(Message message, byte[] pattern) {
         try {
             System.out.println("=================== RECEIVING FROM REDIS ====================");
-            
-            // Custom ObjectMapper deserialization replaces MessageListenerAdapter's implicit conversion
+          
             ChatMessage chatMessage = objectMapper.readValue(message.getBody(), ChatMessage.class);
+            chatMessage.setServerPort(port);
             
             System.out.println("Message: " + chatMessage.getMessage());
             System.out.println("Sender: " + chatMessage.getSender());
