@@ -24,7 +24,7 @@ function Register() {
 
     try {
         await axios.post(
-            "http://localhost:8080/api/auth/register",
+            "http://localhost/api/auth/register",
             formData
         );
 
