@@ -10,6 +10,7 @@ function Chat() {
     const [text, setText] = useState("");
     const [typingUsers, setTypingUsers] = useState({});
     const [onlineUsers, setOnlineUsers] = useState(new Set());
+    const [connectedPort, setConnectedPort] = useState(null);
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
@@ -54,6 +55,7 @@ function Chat() {
             disconnectWebSocket();
             setTypingUsers({});
             setOnlineUsers(new Set([username]));
+            setConnectedPort(null);
             
             // Load existing messages
             const response = await getRoomMessages(room.id);
@@ -63,6 +65,9 @@ function Chat() {
                 room.id,
                 username,
                 (message) => {
+                    if (message.serverPort) {
+                        setConnectedPort(message.serverPort);
+                    }
                     if (message.messageType === "TYPING") {
                         if (message.sender !== username) {
                             setTypingUsers(prev => ({ ...prev, [message.sender]: Date.now() }));
@@ -192,6 +197,11 @@ function Chat() {
                                     {onlineUsers.size} Online
                                 </p>
                             </div>
+                            {connectedPort && (
+                                <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "6px 12px", fontSize: "13px", fontWeight: "600", color: "#1e40af" }}>
+                                    Connected Server Port: <span style={{ color: "#2563eb", fontWeight: "700" }}>{connectedPort}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Messages Area */}
