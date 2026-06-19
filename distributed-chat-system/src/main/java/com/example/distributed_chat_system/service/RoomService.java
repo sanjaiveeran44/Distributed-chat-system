@@ -114,5 +114,4 @@ public class RoomService {
     public List<Message> getRoomMessages(Long roomId) {
         return messageRepository.findByRoomIdOrderByTimestampAsc(roomId);
     }
-
 }
