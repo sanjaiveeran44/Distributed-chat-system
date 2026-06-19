@@ -8,6 +8,8 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.distributed_chat_system.model.ChatMessage;
 import com.example.distributed_chat_system.service.MessageService;
@@ -39,40 +41,34 @@ public class ChatController {
         if(accessor.getUser() == null){
             return;
         }
-
+        message.setRoomId(roomId);
         String email =
                 accessor.getUser().getName();
 
         User sender =
                 userService.findByEmail(email)
                         .orElseThrow();
-
-        Message dbMessage = new Message();
-
-        dbMessage.setRoomId(
-                Long.parseLong(roomId)
-        );
-
-        dbMessage.setSenderId(
-                sender.getId()
-        );
-
-        dbMessage.setMessage(
-                message.getMessage()
-        );
-
-        dbMessage.setTimestamp(
+        Message dbMessage = new Message(
+                Long.parseLong(roomId),
+                sender.getId(),
+                message.getMessage(),
                 LocalDateTime.now()
         );
-
         messageService.saveMessage(dbMessage);
 
-        message.setSender(email);
+        messageService.publishMessage(message);
 
-        messagingTemplate.convertAndSend(
-                "/topic/" + roomId,
-                message
-        );
+    }
+
+    @MessageMapping("/typing/{roomId}")
+    public void typing(
+            @DestinationVariable String roomId,
+            @Payload ChatMessage message,
+            Principal principal
+    ) {
+        if (principal == null) return;
+        message.setSender(principal.getName());
+        messagingTemplate.convertAndSend("/topic/" + roomId, message);
     }
 
     @MessageMapping("/join/{roomId}")
@@ -101,5 +97,16 @@ public class ChatController {
 
         );
 
+    }
+    @ResponseBody
+    @PostMapping("/test-redis")
+    public String testRedis() {
+
+        ChatMessage message = new ChatMessage();
+        message.setMessage("Hello Redis!");
+
+        messageService.publishMessage(message);
+
+        return "Published";
     }
 }
