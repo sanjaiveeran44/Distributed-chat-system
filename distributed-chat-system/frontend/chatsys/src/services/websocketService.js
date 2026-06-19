@@ -9,7 +9,7 @@ export const connectWebSocket = (
     onMessageReceived
     ) => {
 
-        const socket = new SockJS("http://localhost:8080/chat");
+        const socket = new SockJS("http://localhost/chat");
 
         stompClient = new Client({
 
