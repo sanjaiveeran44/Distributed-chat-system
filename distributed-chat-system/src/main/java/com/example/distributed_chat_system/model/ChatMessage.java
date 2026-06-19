@@ -6,6 +6,7 @@ public class ChatMessage {
     private String message;
     private String messageType;
     private String roomId;
+    private String serverPort;
 
     public ChatMessage() {
     }
@@ -47,5 +48,13 @@ public class ChatMessage {
 
     public void setMessageType(String messageType) {
         this.messageType = messageType;
+    }
+
+    public String getServerPort() {
+        return serverPort;
+    }
+
+    public void setServerPort(String serverPort) {
+        this.serverPort = serverPort;
     }
 }
