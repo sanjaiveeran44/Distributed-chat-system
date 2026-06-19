@@ -8,7 +8,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.distributed_chat_system.model.ChatMessage;
@@ -24,6 +24,9 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageService messageService;
     private final UserService userService;
+
+    @org.springframework.beans.factory.annotation.Value("${server.port:8080}")
+    private String port;
 
     public ChatController(SimpMessagingTemplate messagingTemplate, MessageService messageService, UserService userService) {
         this.messagingTemplate = messagingTemplate;
@@ -68,6 +71,7 @@ public class ChatController {
     ) {
         if (principal == null) return;
         message.setSender(principal.getName());
+        message.setServerPort(port);
         messagingTemplate.convertAndSend("/topic/" + roomId, message);
     }
 
@@ -88,6 +92,7 @@ public class ChatController {
         }
 
         message.setSender(principal.getName());
+        message.setServerPort(port);
 
         messagingTemplate.convertAndSend(
 
@@ -99,14 +104,8 @@ public class ChatController {
 
     }
     @ResponseBody
-    @PostMapping("/test-redis")
+    @GetMapping("/test-nginx")
     public String testRedis() {
-
-        ChatMessage message = new ChatMessage();
-        message.setMessage("Hello Redis!");
-
-        messageService.publishMessage(message);
-
-        return "Published";
+        return "Running on port " + port; 
     }
 }
