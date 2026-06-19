@@ -21,6 +21,7 @@ function Login() {
                 "token",
                 response.data.token
             );
+            localStorage.setItem("email", email);
 
             navigate("/chat");
 
