@@ -115,6 +115,18 @@ export const sendMessage = (
 
 };
 
+export const sendTyping = (roomId, username) => {
+    if (!stompClient) return;
+    stompClient.publish({
+        destination: `/app/typing/${roomId}`,
+        body: JSON.stringify({
+            sender: username,
+            message: "",
+            messageType: "TYPING"
+        })
+    });
+};
+
 export const disconnectWebSocket = () => {
 
     if (stompClient) {
