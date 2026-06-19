@@ -5,14 +5,24 @@ public class ChatMessage {
     private String sender;
     private String message;
     private String messageType;
+    private String roomId;
 
     public ChatMessage() {
     }
 
-    public ChatMessage(String sender, String message, String messageType) {
+    public ChatMessage(String sender, String message, String messageType, String roomId) {
         this.sender = sender;
         this.message = message;
         this.messageType = messageType;
+        this.roomId = roomId;
+    }
+
+    public String getRoomId() {
+        return roomId;
+    }
+
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
     }
 
     public String getSender() {
