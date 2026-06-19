@@ -31,6 +31,13 @@ public class Message {
     public Message() {
     }
 
+    public Message(Long roomId, Long senderId, String message, LocalDateTime timestamp) {
+        this.roomId = roomId;
+        this.senderId = senderId;
+        this.message = message;
+        this.timestamp = timestamp;
+    }
+
     public Long getId() {
         return id;
     }
