@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { getRooms, joinRoom, getRoomMessages, createRoom } from "../services/RoomService";
-import { connectWebSocket, sendMessage, sendTyping, disconnectWebSocket } from "../services/websocketService";
+import { initWebSocketConnection, subscribeToRoom, sendMessage, sendTyping, disconnectWebSocket } from "../services/websocketService";
 
 function Chat() {
     const username = localStorage.getItem("email") || "Guest";
@@ -15,6 +15,7 @@ function Chat() {
 
     useEffect(() => {
         loadRooms();
+        initWebSocketConnection().catch(console.error);
         return () => {
             disconnectWebSocket();
         };
@@ -52,16 +53,14 @@ function Chat() {
     const enterRoom = async (room) => {
         try {
             await joinRoom(room.id);
-            disconnectWebSocket();
             setTypingUsers({});
             setOnlineUsers(new Set([username]));
-            setConnectedPort(null);
             
             // Load existing messages
             const response = await getRoomMessages(room.id);
             setMessages(response.data);
 
-            connectWebSocket(
+            subscribeToRoom(
                 room.id,
                 username,
                 (message) => {
